@@ -33,33 +33,26 @@ class _WebViewPageState extends State<WebViewPage> {
     _webViewController.loadRequest(Uri.parse('https://ethiojobs.net/jobs'));
   }
 
-  Future<void> _goBack() async {
+  Future<bool> _onWillPop() async {
     if (await _webViewController.canGoBack()) {
       await _webViewController.goBack();
-    } else {
-      // Optionally, you can navigate back to a different screen or exit the app
-      Navigator.pop(context);
+      return false; // Prevent the default back navigation
     }
+    return true; // Allow the default back navigation
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          WebViewWidget(controller: _webViewController),
-          if (_isLoading) // Show loading indicator when loading
-            Center(child: CircularProgressIndicator()),
-          Positioned(
-            top: 50, // Adjust the position as needed
-            left: 20, // Adjust the position as needed
-            child: FloatingActionButton(
-              onPressed: _goBack,
-              child: Icon(Icons.arrow_back),
-              tooltip: 'Back',
-            ),
-          ),
-        ],
+  Widget build(BuildContext context) {   
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        body: Stack(
+          children: [
+            WebViewWidget(controller: _webViewController),
+            if (_isLoading) // Show loading indicator when loading
+              Center(child: CircularProgressIndicator()),
+          ],
+        ),
       ),
     );
   }
