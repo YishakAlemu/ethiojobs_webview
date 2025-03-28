@@ -11,7 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  webview_flutter: ^4.0.7 # Replace with the actual latest version
+  webview_flutter: ^4.0.0 # Replace with the actual latest version
   cupertino_icons: ^1.0.8
 
 dev_dependencies:
