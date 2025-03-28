@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.example.ethiojobs_webview"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973" // Explicitly set the required NDK version
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

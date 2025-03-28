@@ -16,5 +16,5 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: WebViewPage(), // Use the new WebViewPage
     );
-  }
+  } 
 }
