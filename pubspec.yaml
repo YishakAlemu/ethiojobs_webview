@@ -18,6 +18,15 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.3
+
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/ethiojobs.webp" # For legacy icons
+  adaptive_icon_background: "#FFFFFF" # Background color (or use an image path)
+  adaptive_icon_foreground: "assets/ethiojobs.webp" #
 
 flutter:
   uses-material-design: true
