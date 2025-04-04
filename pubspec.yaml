@@ -13,6 +13,8 @@ dependencies:
     sdk: flutter
   webview_flutter: ^4.0.0 # Replace with the actual latest version
   cupertino_icons: ^1.0.8
+  flutter_svg: ^2.0.7
+  connectivity_plus: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -20,13 +22,14 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.14.3
 
-
 flutter_icons:
   android: true
   ios: true
   image_path: "assets/ethiojobs.webp" # For legacy icons
   adaptive_icon_background: "#FFFFFF" # Background color (or use an image path)
-  adaptive_icon_foreground: "assets/ethiojobs.webp" #
+  adaptive_icon_foreground: "assets/ethiojobs.webp"
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/404page.svg
