@@ -27,6 +27,12 @@ class _WebViewPageState extends State<WebViewPage> {
               _hasError = false; // Reset error state on successful load
             });
           },
+          onWebResourceError: (error) {
+            setState(() {
+              _isLoading = false;
+              _hasError = true; // Show custom error page on load error
+            });
+          },
         ),
       );
     _checkConnectivityAndLoadPage();
@@ -64,44 +70,80 @@ class _WebViewPageState extends State<WebViewPage> {
         backgroundColor: Colors.white,
         body: Stack(
           children: [
-            if (_hasError) // Display custom error page
+            if (_hasError)
               Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    SizedBox(height: 50),
+                    SizedBox(height: 40),
                     SizedBox(
                       height: 57,
                       width: 290,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(0),
                         child: Image.asset(
-                          'assets/404page.svg',
+                          'assets/404page.png', // Note: use PNG or JPG instead of SVG unless using a proper SVG package
                           fit: BoxFit.fill,
                         ),
                       ),
                     ),
                     SizedBox(height: 50),
                     Text(
-                      'No Internet Connection',
-                      style: TextStyle(fontSize: 25, color: Colors.black, fontWeight: FontWeight.w700),
+                      'Page not found',
+                      style: TextStyle(
+                          fontSize: 25,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w700),
                     ),
                     SizedBox(height: 25),
                     Text(
-                      "We're sorry, but it seems you are offline.\nPlease check your internet connection.",
-                      style: TextStyle(fontSize: 15, color: Colors.black, fontWeight: FontWeight.w200),
+                      "We're sorry, but the page you requested could not be found.\nPlease go back to the homepage.",
+                      style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w200),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 20),
+                    Text(
+                      "Some reasons why this page has shown up might be:",
+                      style: TextStyle(
+                          fontSize: 17,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w400),
+                    ),
+                    SizedBox(height: 20),
+                    RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 15, color: Colors.grey),
+                        children: [
+                          TextSpan(
+                              text:
+                                  '• The page was removed and other pages still link to it\n'),
+                          TextSpan(
+                              text:
+                                  '• Our server may be experiencing technical difficulties\n'),
+                          TextSpan(
+                              text:
+                                  "• You typed an incorrect address in your browser's address bar\n"),
+                        ],
+                      ),
                     ),
                     SizedBox(height: 20),
                     ElevatedButton.icon(
                       onPressed: () {
                         setState(() {
-                          _hasError = false; // Reset the error state
-                          _isLoading = true; // Show loading indicator
-                          _checkConnectivityAndLoadPage(); // Check connectivity again
+                          _hasError = false;
+                          _isLoading = true;
+                          _checkConnectivityAndLoadPage();
                         });
                       },
-                      icon: Icon(Icons.refresh, color: Color.fromARGB(255, 72, 193, 156)), // Reload icon
-                      label: Text("Retry", style: TextStyle(color: Color.fromARGB(255, 72, 193, 156))), // Label text
+                      icon: Icon(Icons.refresh,
+                          color: Color.fromARGB(255, 72, 193, 156)),
+                      label: Text("Retry",
+                          style: TextStyle(
+                              color: Color.fromARGB(255, 72, 193, 156))),
                     ),
                   ],
                 ),
