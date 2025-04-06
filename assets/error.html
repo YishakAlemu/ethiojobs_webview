@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fff;
+      text-align: center;
+      padding: 50px;
+      color: #333;
+    }
+    .error-icon {
+      font-size: 100px;
+      color: red;
+    }
+    .title {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 20px 0 10px;
+    }
+    .subtitle {
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+    .retry-button {
+      background-color: #1976D2;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="error-icon">🚫</div>
+  <div class="title">No Internet Connection</div>
+  <div class="subtitle">Please check your connection and try again.</div>
+  <button class="retry-button" disabled>Retry</button>
+</body>
+</html>

@@ -11,55 +11,79 @@ class WebViewPage extends StatefulWidget {
 
 class _WebViewPageState extends State<WebViewPage> {
   late final WebViewController _webViewController;
-  bool _isLoading = true;
-  bool _hasError = false;
+  bool _isLoading = true; // Track loading state
+  bool _isOffline = false; // Track offline state
+  bool _isConnected = false; // Track internet connection status
+  bool _shouldLoadWebView = false; // Track whether WebView should load
+  bool _retryInProgress = false; // To prevent retry loop
 
   @override
   void initState() {
     super.initState();
+    _initializeWebView();
+    _checkConnectivityAndLoadPage();
+  }
+
+  // Initialize WebViewController
+  void _initializeWebView() {
     _webViewController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
+          onPageStarted: (url) {
+            setState(() {
+              _isLoading = true; // Show loading indicator
+            });
+          },
           onPageFinished: (url) {
             setState(() {
-              _isLoading = false;
-              _hasError = false; // Reset error state on successful load
+              _isLoading = false; // Hide loading indicator after page finishes
             });
           },
           onWebResourceError: (error) {
-            setState(() {
-              _isLoading = false;
-              _hasError = true; // Show custom error page on load error
-            });
+            // Here, we ensure the error page is only shown if we're offline
+            if (!_isConnected) {
+              setState(() {
+                _isOffline = true; // Show custom error page if no internet
+              });
+            }
           },
         ),
       );
-    _checkConnectivityAndLoadPage();
   }
 
+  // Check internet and load WebView or custom error page
   Future<void> _checkConnectivityAndLoadPage() async {
-    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (_retryInProgress) return; // Prevent multiple retries at the same time
+
+    setState(() {
+      _retryInProgress = true;
+    });
+
+    var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult == ConnectivityResult.none) {
+      // No internet, show custom error page
       setState(() {
-        _isLoading = false;
-        _hasError = true; // Show custom error page
+        _isOffline = true;
+        _isLoading = false; // Hide loading indicator immediately
+        _isConnected = false; // Set connection status to false
       });
     } else {
-      _loadWebPage(); // Load the web page if connected
+      // Internet available, load the website in WebView
+      setState(() {
+        _isOffline = false;
+        _isLoading = true;
+        _shouldLoadWebView = true;
+        _isConnected = true; // Set connection status to true
+        _retryInProgress = false;
+      });
+      _webViewController.loadRequest(Uri.parse('https://ethiojobs.net/jobs'));
     }
   }
 
-  void _loadWebPage() {
-    _webViewController.loadRequest(Uri.parse('https://ethiojobs.net/jobs'));
-  }
-
-  Future<bool> _onWillPop() async {
-    if (await _webViewController.canGoBack()) {
-      await _webViewController.goBack();
-      return false; // Prevent the default back navigation
-    }
-    return true; // Allow the default back navigation
+  // Retry logic when user taps Retry button on custom error page
+  void _retryConnection() {
+    _checkConnectivityAndLoadPage(); // Re-check the connectivity and try loading the page again
   }
 
   @override
@@ -70,91 +94,55 @@ class _WebViewPageState extends State<WebViewPage> {
         backgroundColor: Colors.white,
         body: Stack(
           children: [
-            if (_hasError)
-              Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(height: 40),
-                    SizedBox(
-                      height: 57,
-                      width: 290,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(0),
-                        child: Image.asset(
-                          'assets/404page.png', // Note: use PNG or JPG instead of SVG unless using a proper SVG package
-                          fit: BoxFit.fill,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 50),
-                    Text(
-                      'Page not found',
-                      style: TextStyle(
-                          fontSize: 25,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w700),
-                    ),
-                    SizedBox(height: 25),
-                    Text(
-                      "We're sorry, but the page you requested could not be found.\nPlease go back to the homepage.",
-                      style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w200),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 20),
-                    Text(
-                      "Some reasons why this page has shown up might be:",
-                      style: TextStyle(
-                          fontSize: 17,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.w400),
-                    ),
-                    SizedBox(height: 20),
-                    RichText(
-                      textAlign: TextAlign.center,
-                      text: TextSpan(
-                        style: TextStyle(fontSize: 15, color: Colors.grey),
-                        children: [
-                          TextSpan(
-                              text:
-                                  '• The page was removed and other pages still link to it\n'),
-                          TextSpan(
-                              text:
-                                  '• Our server may be experiencing technical difficulties\n'),
-                          TextSpan(
-                              text:
-                                  "• You typed an incorrect address in your browser's address bar\n"),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _hasError = false;
-                          _isLoading = true;
-                          _checkConnectivityAndLoadPage();
-                        });
-                      },
-                      icon: Icon(Icons.refresh,
-                          color: Color.fromARGB(255, 72, 193, 156)),
-                      label: Text("Retry",
-                          style: TextStyle(
-                              color: Color.fromARGB(255, 72, 193, 156))),
-                    ),
-                  ],
-                ),
-              )
-            else
+            // Show custom error page if no internet
+            if (_isOffline && !_isConnected)
+              _buildCustomErrorPage()
+            // Show WebView if internet available
+            else if (_shouldLoadWebView && _isConnected)
               WebViewWidget(controller: _webViewController),
-            if (_isLoading && !_hasError)
-              Center(child: CircularProgressIndicator()),
+            // Show loading indicator while page is loading
+            if (_isLoading && !_isOffline && _isConnected)
+              const Center(child: CircularProgressIndicator()),
           ],
         ),
       ),
     );
+  }
+
+  // Custom error page widget
+  Widget _buildCustomErrorPage() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error, size: 100, color: Colors.red),
+          const SizedBox(height: 20),
+          const Text(
+            'No Internet Connection',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Please check your internet connection and try again.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: _retryConnection, // Retry loading the webpage
+            icon: const Icon(Icons.refresh),
+            label: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<bool> _onWillPop() async {
+    if (await _webViewController.canGoBack()) {
+      await _webViewController.goBack();
+      return false; // Prevent default back navigation
+    }
+    return true; // Allow default back navigation
   }
 }
